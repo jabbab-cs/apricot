@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFB45E"/>
+      <stop offset="1" stop-color="#FF5C3A"/>
+    </linearGradient>
+    <radialGradient id="fruit" cx="0.38" cy="0.32" r="0.8">
+      <stop offset="0" stop-color="#FFF8EE"/>
+      <stop offset="1" stop-color="#FFE2C2"/>
+    </radialGradient>
+    <linearGradient id="leaf" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#2FA866"/>
+      <stop offset="1" stop-color="#6FDC8C"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="228" fill="url(#bg)"/>
+  <!-- fruit body -->
+  <path d="M512 318 C 384 246, 214 330, 222 540 C 230 742, 392 842, 512 842 C 632 842, 794 742, 802 540 C 810 330, 640 246, 512 318 Z" fill="url(#fruit)"/>
+  <!-- seam -->
+  <path d="M512 330 C 468 450, 470 660, 528 828" fill="none" stroke="#FFB27A" stroke-width="26" stroke-linecap="round"/>
+  <!-- stem -->
+  <path d="M512 326 C 506 286, 494 254, 476 226" fill="none" stroke="#7A4A2A" stroke-width="30" stroke-linecap="round"/>
+  <!-- leaf -->
+  <path d="M520 300 C 548 214, 640 162, 752 176 C 726 270, 636 326, 520 300 Z" fill="url(#leaf)"/>
+  <path d="M540 292 C 600 262, 660 230, 720 196" fill="none" stroke="#1F7F4B" stroke-width="10" stroke-linecap="round" opacity="0.55"/>
+  <!-- play mark: "run" -->
+  <path d="M452 512 L 452 664 C 452 680, 468 690, 482 682 L 610 606 C 624 598, 624 578, 610 570 L 482 494 C 468 486, 452 496, 452 512 Z" fill="#FF6A3D"/>
+</svg>

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Apricot</title>
+  <meta name="theme-color" content="#FF7A45">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="logo.svg" alt="" width="32" height="32">
+      <span>Apricot</span>
+    </div>
+    <div class="topbar-right">
+      <label class="device-picker">
+        <span class="dot" id="device-dot"></span>
+        <select id="device-select" aria-label="Device"></select>
+      </label>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Phone -->
+    <section class="phone-col">
+      <div class="phone" id="phone">
+        <div class="screen" id="screen">
+          <canvas id="video" tabindex="0" aria-label="Android screen"></canvas>
+          <div class="screen-overlay" id="overlay">
+            <div class="overlay-inner">
+              <img src="logo.svg" alt="" width="56" height="56">
+              <h2 id="overlay-title">Connecting…</h2>
+              <p id="overlay-text"></p>
+              <div id="overlay-actions" class="overlay-actions"></div>
+            </div>
+          </div>
+        </div>
+        <nav class="navbar" aria-label="Android navigation">
+          <button data-key="back" title="Back (Esc)"><svg viewBox="0 0 24 24"><path d="M16 5 8 12l8 7z"/></svg></button>
+          <button data-key="home" title="Home"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5"/></svg></button>
+          <button data-key="recents" title="Recent apps"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button>
+        </nav>
+      </div>
+      <div class="phone-tools">
+        <button class="tool" data-key="volume_down" title="Volume down">Vol −</button>
+        <button class="tool" data-key="volume_up" title="Volume up">Vol +</button>
+        <button class="tool" data-action="rotate" title="Rotate">Rotate</button>
+        <button class="tool" data-action="notifications" title="Notifications">Notifs</button>
+        <button class="tool" data-key="power" title="Power">Power</button>
+        <a class="tool" id="screenshot" href="#" title="Screenshot">Screenshot</a>
+      </div>
+    </section>
+
+    <!-- Panels -->
+    <section class="panel-col">
+      <div class="tabs" role="tablist">
+        <button role="tab" class="tab active" data-tab="library">Library</button>
+        <button role="tab" class="tab" data-tab="installed">Installed</button>
+        <button role="tab" class="tab" data-tab="logs">Logs</button>
+        <button role="tab" class="tab" data-tab="device">Device</button>
+      </div>
+
+      <div class="panel active" id="panel-library">
+        <label class="dropzone" id="dropzone">
+          <input type="file" id="file-input" accept=".apk,application/vnd.android.package-archive" multiple hidden>
+          <svg viewBox="0 0 24 24" class="dz-icon"><path d="M12 3v12m0-12-4 4m4-4 4 4M4 15v3a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-3"/></svg>
+          <strong>Drop APKs here</strong>
+          <span>or click to choose. They're installed and launched on the device.</span>
+          <div class="progress" id="upload-progress" hidden><div></div></div>
+        </label>
+        <div class="list" id="library-list"></div>
+      </div>
+
+      <div class="panel" id="panel-installed">
+        <div class="list" id="installed-list"></div>
+      </div>
+
+      <div class="panel" id="panel-logs">
+        <div class="log-toolbar">
+          <select id="log-package"><option value="">All processes</option></select>
+          <select id="log-level">
+            <option value="V">Verbose</option><option value="D">Debug</option><option value="I" selected>Info</option>
+            <option value="W">Warn</option><option value="E">Error</option>
+          </select>
+          <input id="log-filter" type="search" placeholder="Filter…">
+          <button class="btn ghost" id="log-pause">Pause</button>
+          <button class="btn ghost" id="log-clear">Clear</button>
+        </div>
+        <div class="logs" id="logs"></div>
+      </div>
+
+      <div class="panel" id="panel-device">
+        <div class="cards" id="device-cards"></div>
+        <h3 class="section-title">Virtual devices</h3>
+        <div class="list" id="avd-list"></div>
+        <h3 class="section-title">Connect your iPhone</h3>
+        <div class="card connect-card" id="connect-card"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toasts" id="toasts"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

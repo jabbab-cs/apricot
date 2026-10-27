@@ -1,0 +1,55 @@
+name: End-to-end (Linux)
+
+# Runs the real Linux setup, boots an emulator through Apricot's API and streams to a test client.
+# Slow (~15 min), so it runs on main, weekly, and on demand.
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      # CI runners have no GPU and no display.
+      APRICOT_EMULATOR_GPU: swiftshader_indirect
+      APRICOT_HEADLESS: '1'
+      APRICOT_BONJOUR: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run setup.sh
+        run: ./scripts/setup.sh
+      - name: Start server
+        working-directory: server
+        run: |
+          nohup node src/index.js > ../server.log 2>&1 &
+          for i in $(seq 1 20); do curl -sf localhost:7420/api/status > /dev/null && break; sleep 0.5; done
+      - name: Boot emulator through Apricot
+        run: |
+          curl -sf -X POST -H 'Content-Type: application/json' -d '{"name":"Apricot_Phone"}' localhost:7420/api/avds/boot
+          ADB="$HOME/Android/Sdk/platform-tools/adb"
+          timeout 600 "$ADB" wait-for-device
+          timeout 600 bash -c "until [ \"\$($ADB shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')\" = 1 ]; do sleep 3; done"
+          "$ADB" shell settings put global window_animation_scale 0
+          "$ADB" shell input keyevent 82
+          sleep 15
+      - name: Smoke test
+        run: node scripts/e2e-smoke.mjs
+      - name: Server log
+        if: always()
+        run: cat server.log || true

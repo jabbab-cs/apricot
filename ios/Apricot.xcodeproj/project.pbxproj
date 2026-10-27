@@ -1,0 +1,399 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		123F1252E3AC12B80F5C561A /* ConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46EC44DEBB2A21892B10C85D /* ConnectView.swift */; };
+		1F9E3F3AD41AA3BDEE538FE4 /* DeviceScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87D8E49E6A1D3A0904565442 /* DeviceScreen.swift */; };
+		62F3F3D3C821922B1BE3ACDD /* DeviceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 718A212971218BEBBB3E067C /* DeviceView.swift */; };
+		6B82599184AB33B36BCE0AE6 /* LogsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5E7E21BA3989B0609B08BF /* LogsView.swift */; };
+		6C797AF6732A52C231787BD7 /* AppsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF69A9D5BD1B105C002FC310 /* AppsView.swift */; };
+		6D5148FB820F49E1465864CD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 83863B1F68FAEDE0F033F7BE /* Assets.xcassets */; };
+		931219A59E161FBD65117725 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC92D2B0637E5CD8A0F3BD /* Components.swift */; };
+		9627E49D5B4306E655BA83EF /* DeviceStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = BABE38F4B7E9745C5C95F866 /* DeviceStream.swift */; };
+		9829004B8FE860E1B911E408 /* H264Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC4E75BD6A01B1929AE9D556 /* H264Renderer.swift */; };
+		BA2C7E4FA347B7BD58172C56 /* ApricotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 819C1BADD4A262D478ABC2D6 /* ApricotApp.swift */; };
+		C54BD45547A24CD9686A8703 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3529D175BF99105391CFF72 /* APIClient.swift */; };
+		C665F99BB955401B33AD99D9 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA49FFAC57220B4122EB528 /* AppModel.swift */; };
+		C6B9FA36E4D6664FB38C5CC6 /* PhoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7F1F924FE9006EA5E9C6BA /* PhoneView.swift */; };
+		C7D44740714CCC23A8E747BB /* Discovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBDD58B73EC84F3A708CB0E8 /* Discovery.swift */; };
+		CDB8C868AA6EEFFBD4098EF2 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDDB42AED253B818795EA482 /* Models.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		02E16AB0093A633DCB372DD0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		2BAC92D2B0637E5CD8A0F3BD /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		46EC44DEBB2A21892B10C85D /* ConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectView.swift; sourceTree = "<group>"; };
+		5B7F1F924FE9006EA5E9C6BA /* PhoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneView.swift; sourceTree = "<group>"; };
+		5BA49FFAC57220B4122EB528 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		718A212971218BEBBB3E067C /* DeviceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceView.swift; sourceTree = "<group>"; };
+		819C1BADD4A262D478ABC2D6 /* ApricotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApricotApp.swift; sourceTree = "<group>"; };
+		83863B1F68FAEDE0F033F7BE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		87D8E49E6A1D3A0904565442 /* DeviceScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceScreen.swift; sourceTree = "<group>"; };
+		A3529D175BF99105391CFF72 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		BABE38F4B7E9745C5C95F866 /* DeviceStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceStream.swift; sourceTree = "<group>"; };
+		BB5E7E21BA3989B0609B08BF /* LogsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogsView.swift; sourceTree = "<group>"; };
+		BBDD58B73EC84F3A708CB0E8 /* Discovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Discovery.swift; sourceTree = "<group>"; };
+		BC4E75BD6A01B1929AE9D556 /* H264Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = H264Renderer.swift; sourceTree = "<group>"; };
+		BF69A9D5BD1B105C002FC310 /* AppsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppsView.swift; sourceTree = "<group>"; };
+		DB66CF4CB520C81C6F67D3B8 /* Apricot.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Apricot.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EDDB42AED253B818795EA482 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		4547366EF35D5F2088B743D2 = {
+			isa = PBXGroup;
+			children = (
+				898143071F2A17A420DB1D6C /* Apricot */,
+				E1A3339FCCA144DE99DC0133 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5EEFEDAAE08CE0838DB3C902 /* Stream */ = {
+			isa = PBXGroup;
+			children = (
+				87D8E49E6A1D3A0904565442 /* DeviceScreen.swift */,
+				BABE38F4B7E9745C5C95F866 /* DeviceStream.swift */,
+				BC4E75BD6A01B1929AE9D556 /* H264Renderer.swift */,
+			);
+			path = Stream;
+			sourceTree = "<group>";
+		};
+		87B511DCCD0A4F7E33F607A9 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				A3529D175BF99105391CFF72 /* APIClient.swift */,
+				BBDD58B73EC84F3A708CB0E8 /* Discovery.swift */,
+				EDDB42AED253B818795EA482 /* Models.swift */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
+		898143071F2A17A420DB1D6C /* Apricot */ = {
+			isa = PBXGroup;
+			children = (
+				83863B1F68FAEDE0F033F7BE /* Assets.xcassets */,
+				02E16AB0093A633DCB372DD0 /* Info.plist */,
+				DB4C35AB1FAD6324F9281818 /* App */,
+				87B511DCCD0A4F7E33F607A9 /* Networking */,
+				5EEFEDAAE08CE0838DB3C902 /* Stream */,
+				DD403E669EA119ABA4A18A1F /* Views */,
+			);
+			path = Apricot;
+			sourceTree = "<group>";
+		};
+		DB4C35AB1FAD6324F9281818 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				5BA49FFAC57220B4122EB528 /* AppModel.swift */,
+				819C1BADD4A262D478ABC2D6 /* ApricotApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		DD403E669EA119ABA4A18A1F /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				BF69A9D5BD1B105C002FC310 /* AppsView.swift */,
+				2BAC92D2B0637E5CD8A0F3BD /* Components.swift */,
+				46EC44DEBB2A21892B10C85D /* ConnectView.swift */,
+				718A212971218BEBBB3E067C /* DeviceView.swift */,
+				BB5E7E21BA3989B0609B08BF /* LogsView.swift */,
+				5B7F1F924FE9006EA5E9C6BA /* PhoneView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		E1A3339FCCA144DE99DC0133 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DB66CF4CB520C81C6F67D3B8 /* Apricot.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		36B9BD2DA230758A73753EEA /* Apricot */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EB257FE7AB72F23E2F062ADC /* Build configuration list for PBXNativeTarget "Apricot" */;
+			buildPhases = (
+				253209C4F7274E1B43D70C1B /* Sources */,
+				499FFBD6E967E48601F4F382 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Apricot;
+			packageProductDependencies = (
+			);
+			productName = Apricot;
+			productReference = DB66CF4CB520C81C6F67D3B8 /* Apricot.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0866B01EB787C87EF4821D26 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					36B9BD2DA230758A73753EEA = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 1A44BD31FEE6F5E505547D87 /* Build configuration list for PBXProject "Apricot" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 4547366EF35D5F2088B743D2;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = E1A3339FCCA144DE99DC0133 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				36B9BD2DA230758A73753EEA /* Apricot */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		499FFBD6E967E48601F4F382 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6D5148FB820F49E1465864CD /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		253209C4F7274E1B43D70C1B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C54BD45547A24CD9686A8703 /* APIClient.swift in Sources */,
+				C665F99BB955401B33AD99D9 /* AppModel.swift in Sources */,
+				6C797AF6732A52C231787BD7 /* AppsView.swift in Sources */,
+				BA2C7E4FA347B7BD58172C56 /* ApricotApp.swift in Sources */,
+				931219A59E161FBD65117725 /* Components.swift in Sources */,
+				123F1252E3AC12B80F5C561A /* ConnectView.swift in Sources */,
+				1F9E3F3AD41AA3BDEE538FE4 /* DeviceScreen.swift in Sources */,
+				9627E49D5B4306E655BA83EF /* DeviceStream.swift in Sources */,
+				62F3F3D3C821922B1BE3ACDD /* DeviceView.swift in Sources */,
+				C7D44740714CCC23A8E747BB /* Discovery.swift in Sources */,
+				9829004B8FE860E1B911E408 /* H264Renderer.swift in Sources */,
+				6B82599184AB33B36BCE0AE6 /* LogsView.swift in Sources */,
+				CDB8C868AA6EEFFBD4098EF2 /* Models.swift in Sources */,
+				C6B9FA36E4D6664FB38C5CC6 /* PhoneView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		26C2B6E32D5B45094D5C662F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Apricot/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.apricot.app;
+				PRODUCT_NAME = Apricot;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		60552EE626F3832060D524D0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		64963660D2C2791062573321 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Apricot/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.apricot.app;
+				PRODUCT_NAME = Apricot;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		D1CB9E60E4A76F3F5CD14FA2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1A44BD31FEE6F5E505547D87 /* Build configuration list for PBXProject "Apricot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				60552EE626F3832060D524D0 /* Debug */,
+				D1CB9E60E4A76F3F5CD14FA2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		EB257FE7AB72F23E2F062ADC /* Build configuration list for PBXNativeTarget "Apricot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				26C2B6E32D5B45094D5C662F /* Debug */,
+				64963660D2C2791062573321 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0866B01EB787C87EF4821D26 /* Project object */;
+}

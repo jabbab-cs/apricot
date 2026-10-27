@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Apricot server runtime data (uploaded APKs) and downloaded binaries
+server/data/
+server/vendor/
+
+# Xcode
+ios/build/
+ios/DerivedData/
+xcuserdata/
+*.xcuserstate
+*.ipa
+ios/Payload/
+
+# Editors
+.vscode/
+.idea/

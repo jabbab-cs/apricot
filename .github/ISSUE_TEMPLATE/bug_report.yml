@@ -1,0 +1,28 @@
+name: Bug report
+description: Something isn't working
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: status
+    attributes:
+      label: Server status
+      description: Output of `curl localhost:7420/api/status` on your Mac
+      render: json
+  - type: textarea
+    id: logs
+    attributes:
+      label: Server log
+      description: The terminal output of `npm start` around the problem
+      render: text
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: "Windows 11 (Ryzen 7) / macOS 15.5 (M2) / Ubuntu 24.04, iPhone 15 iOS 18.4, emulator API 35"

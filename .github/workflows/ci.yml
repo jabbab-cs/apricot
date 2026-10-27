@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  server:
+    name: server (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - name: Syntax check
+        shell: bash
+        run: for f in src/*.js public/*.js ../scripts/*.mjs; do node --check "$f"; done
+      - name: Server starts and answers
+        shell: bash
+        run: |
+          APRICOT_BONJOUR=0 node src/index.js > server.log 2>&1 &
+          for i in $(seq 1 20); do curl -sf localhost:7420/api/status && break; sleep 0.5; done
+          curl -sf localhost:7420/api/status | node -e "const s=JSON.parse(require('fs').readFileSync(0)); if (s.name !== 'Apricot') process.exit(1)"
+          curl -sf localhost:7420/ | grep -q '<title>Apricot</title>'
+          cat server.log
+
+  setup-scripts:
+    name: setup scripts (lint)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse setup-windows.ps1
+        shell: pwsh
+        run: |
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile("$PWD/scripts/setup-windows.ps1", [ref]$null, [ref]$errors)
+          if ($errors.Count) { $errors | ForEach-Object { Write-Error "$($_.Extent.StartLineNumber): $($_.Message)" }; exit 1 }
+      - name: PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+          $issues = Invoke-ScriptAnalyzer scripts/setup-windows.ps1 -Severity Error
+          $issues | Format-Table
+          if ($issues) { exit 1 }
+      - name: shellcheck setup.sh
+        shell: bash
+        run: shellcheck --severity=warning scripts/setup.sh examples/hello-apricot/build.sh
+
+  ios:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build for simulator
+        working-directory: ios
+        run: |
+          xcodebuild -project Apricot.xcodeproj -scheme Apricot \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -20
