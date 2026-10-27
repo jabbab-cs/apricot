@@ -11,7 +11,7 @@ Self-hosted on macOS, Windows or Linux. Open source, no App Store, no cloud.
 ![iOS 17+](https://img.shields.io/badge/iOS-17%2B-black?logo=apple)
 ![Host: macOS | Windows | Linux](https://img.shields.io/badge/host-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)
 ![Node 20+](https://img.shields.io/badge/node-20%2B-339933?logo=node.js&logoColor=white)
-[![CI](https://github.com/YOUR_USERNAME/apricot/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
+[![CI](https://github.com/jabbab-cs/apricot/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 
 <!-- Record a 10-second GIF of: share APK → it launches → tap around. Save as assets/demo.gif and uncomment:
 <img src="assets/demo.gif" width="320" alt="Apricot demo">
@@ -67,7 +67,7 @@ On ARM Windows or ARM Linux, Google's emulator doesn't run, but Apricot works wi
 **1. Set up your computer** (one time, about 10 minutes, mostly the Android download)
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/apricot.git
+git clone https://github.com/jabbab-cs/apricot.git
 ```
 
 macOS or Linux:
