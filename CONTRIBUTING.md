@@ -5,8 +5,8 @@ Thanks for helping! Apricot is small on purpose, so it stays easy to hack on.
 ## Development setup
 
 ```bash
-./scripts/setup.sh            # macOS/Linux (Windows: scripts\setup-windows.ps1)
-cd server && npm run dev      # restarts on file changes
+./apricot                     # first run sets everything up (Windows: apricot.cmd)
+cd server && APRICOT_REMOTE=0 npm run dev   # restarts on file changes, no tunnel
 ```
 
 Open `http://localhost:7420` for the dashboard. Working on the iPhone app needs a Mac with Xcode:
@@ -15,7 +15,8 @@ Open `http://localhost:7420` for the dashboard. Working on the iPhone app needs 
 open ios/Apricot.xcodeproj    # or: cd ios && xcodegen   after editing project.yml
 ```
 
-The iOS Simulator can connect to the server at `127.0.0.1:7420`.
+The iOS Simulator has no camera. To pair it, open the link from the dashboard's pairing dialog
+(`curl -s localhost:7420/api/pair` shows it) with `xcrun simctl openurl booted '<link>'`.
 
 ## Guidelines
 

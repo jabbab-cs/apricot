@@ -71,11 +71,26 @@ export class ApkLibrary {
       size: buf.length,
       sha256,
       hasIcon: Boolean(icon),
-      iconType: iconMime(meta.iconPath),
+      iconType: meta.iconPath === 'rendered.png' ? 'image/png' : iconMime(meta.iconPath),
       addedAt: new Date().toISOString(),
     };
     await fsp.writeFile(this.#metaPath(id), JSON.stringify(entry, null, 2));
     return entry;
+  }
+
+  /** Entries added before Apricot could draw XML icons get one on first request. */
+  async ensureIcon(meta) {
+    if (meta.hasIcon || meta.iconTried) return meta;
+    let icon = null;
+    try {
+      icon = inspectApk(await fsp.readFile(this.apkPath(meta.id))).icon;
+    } catch {
+      // keep the monogram
+    }
+    if (icon) await fsp.writeFile(this.iconPath(meta.id), icon);
+    const updated = { ...meta, hasIcon: Boolean(icon), iconType: icon ? 'image/png' : meta.iconType, iconTried: true };
+    await fsp.writeFile(this.#metaPath(meta.id), JSON.stringify(updated, null, 2));
+    return updated;
   }
 
   async remove(id) {

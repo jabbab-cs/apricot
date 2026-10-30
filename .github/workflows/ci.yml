@@ -31,7 +31,7 @@ jobs:
       - name: Server starts and answers
         shell: bash
         run: |
-          APRICOT_BONJOUR=0 node src/index.js > server.log 2>&1 &
+          APRICOT_REMOTE=0 node src/index.js > server.log 2>&1 &
           for i in $(seq 1 20); do curl -sf localhost:7420/api/status && break; sleep 0.5; done
           curl -sf localhost:7420/api/status | node -e "const s=JSON.parse(require('fs').readFileSync(0)); if (s.name !== 'Apricot') process.exit(1)"
           curl -sf localhost:7420/ | grep -q '<title>Apricot</title>'
@@ -55,9 +55,13 @@ jobs:
           $issues = Invoke-ScriptAnalyzer scripts/setup-windows.ps1 -Severity Error
           $issues | Format-Table
           if ($issues) { exit 1 }
-      - name: shellcheck setup.sh
-        shell: bash
-        run: shellcheck --severity=warning scripts/setup.sh examples/hello-apricot/build.sh
+
+  shell-scripts:
+    name: shell scripts (shellcheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: shellcheck --severity=warning apricot scripts/setup.sh examples/hello-apricot/build.sh
 
   ios:
     runs-on: macos-15

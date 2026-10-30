@@ -47,9 +47,18 @@
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Apricot connects to the Apricot server running on your computer to show and control your Android device.</string>
-	<key>NSBonjourServices</key>
+	<key>NSCameraUsageDescription</key>
+	<string>Apricot uses the camera to scan the pairing QR code shown on your computer.</string>
+	<key>CFBundleURLTypes</key>
 	<array>
-		<string>_apricot._tcp</string>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>dev.apricot.pair</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>apricot</string>
+			</array>
+		</dict>
 	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>

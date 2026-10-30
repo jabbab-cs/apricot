@@ -19,7 +19,7 @@ body:
     id: logs
     attributes:
       label: Server log
-      description: The terminal output of `npm start` around the problem
+      description: The terminal output of `./apricot` around the problem
       render: text
   - type: input
     id: env

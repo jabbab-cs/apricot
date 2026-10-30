@@ -1,21 +1,31 @@
 import SwiftUI
 
-/// Devices, virtual phones and server connection settings.
+/// Settings sheet: the computer, Android devices, developer tools.
 struct DeviceView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
             List {
                 if let status = model.status {
+                    serverSection(status)
                     devicesSection(status)
                     if let info = model.deviceInfo { infoSection(info) }
                     avdSection(status)
-                    serverSection(status)
+                }
+                Section("Developer") {
+                    NavigationLink { LogsView() } label: { Label("Logs", systemImage: "text.alignleft") }
+                    Button {
+                        dismiss()
+                        model.showAndroid = true
+                    } label: { Label("Show whole Android screen", systemImage: "iphone.gen3") }
                 }
                 aboutSection
             }
-            .navigationTitle("Device")
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
             .refreshable { await model.refreshAll() }
         }
     }
@@ -47,7 +57,7 @@ struct DeviceView: View {
         } header: {
             Text("Android devices")
         } footer: {
-            Text("Emulators and USB-connected phones on your computer show up here.")
+            Text("Android starts automatically on your computer when you open an app, and stops after a few idle minutes.")
         }
     }
 
@@ -89,14 +99,17 @@ struct DeviceView: View {
 
     private func serverSection(_ status: ServerStatus) -> some View {
         Section {
-            LabeledContent("Server", value: status.host)
-            LabeledContent("Address", value: model.endpoint?.displayAddress ?? "—")
+            LabeledContent("Computer", value: status.host)
+            LabeledContent("Connected via", value: model.endpoint?.isRemote == true ? "Internet" : "Local network")
             LabeledContent("Version", value: status.version)
             LabeledContent("scrcpy-server", value: status.tools.scrcpyServer.map { "v\($0)" } ?? "missing")
             if let error = model.connectionError {
                 Label(error, systemImage: "wifi.exclamationmark").foregroundStyle(.red).font(.footnote)
             }
-            Button("Disconnect", role: .destructive) { model.disconnect() }
+            Button("Unpair this computer", role: .destructive) {
+                dismiss()
+                model.disconnect()
+            }
         } header: {
             Text("Computer")
         }

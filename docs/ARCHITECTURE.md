@@ -17,8 +17,11 @@
 | File | Role |
 |---|---|
 | `src/index.js` | HTTP routes, WebSocket upgrade, static dashboard |
-| `src/discovery.js` | mDNS/Bonjour advertisement: the system `dns-sd` on macOS, a JS responder (`bonjour-service`) on Windows/Linux under its own `apricot-<host>.local` name, so it never claims the computer's real hostname |
-| `src/devices.js` | Device selection, emulator boot, install/launch/stop/clear/uninstall, shared stream sessions |
+| `src/pairing.js` | The access token (generated once, kept in `data/token`) and the `apricot://pair` QR code |
+| `src/tunnel.js` | Downloads `cloudflared` and keeps a Cloudflare quick tunnel running for remote access |
+| `src/host.js` | Computer name and LAN addresses |
+| `src/devices.js` | Device selection, on-demand emulator boot and idle shutdown, install/launch/stop/clear/uninstall, icons of installed apps, shared stream sessions |
+| `src/icon.js` | Draws adaptive and vector-drawable icons: Android XML → SVG → PNG (resvg) |
 | `src/scrcpy.js` | Starts `scrcpy-server` on the device, demuxes the video socket, encodes control messages |
 | `src/apk.js` | Dependency-free APK inspector: zip reader, binary XML decoder, `resources.arsc` resolver |
 | `src/library.js` | APK storage in `server/data/apks/` (`<id>.apk`, `<id>.json`, `<id>.icon`) |
@@ -78,14 +81,30 @@ Query: `serial` (optional), `token` (if auth is enabled).
 Query: `package` (optional, filters by that app's PIDs), `level` (`V`/`D`/`I`/`W`/`E`).
 The server sends `{"type":"lines","lines":[{"time","pid","tid","level","tag","message"}]}` about every 150 ms.
 
+## Pairing
+
+The QR code is `apricot://pair?n=<computer name>&t=<token>&u=<url>&u=<url>…`: the LAN addresses first, then the tunnel's
+`https://….trycloudflare.com` address. The iPhone tries them in that order (LAN with a 3 s timeout, so being away from
+home fails fast), remembers the one that answered, and tries the others again when polling fails.
+
+## Emulator lifecycle
+
+Anything that needs a device (`/api/start`, launching or installing an app, opening a stream) calls
+`DeviceManager.device()`. If nothing is running it boots the first virtual phone (`Apricot_Phone` if present) headless,
+waits for `sys.boot_completed`, and switches it to gesture navigation. Concurrent callers share one boot. An emulator
+Apricot started is stopped with `adb emu kill` (which saves a quick-boot snapshot) after `APRICOT_IDLE_MINUTES` without
+viewers or API activity. Icon requests never boot Android; `/api/apps` returns the last known list while it's off.
+
 ## HTTP API
 
-If `APRICOT_TOKEN` is set, send `Authorization: Bearer <token>` or `?token=`. `/api/status` is always open,
-so clients can discover that a token is needed.
+Send `Authorization: Bearer <token>` or `?token=`. Requests from the computer itself (loopback, not relayed by the
+tunnel) don't need it.
 
 | Method | Path | |
 |---|---|---|
-| GET | `/api/status` | Server info, tools, devices, AVDs |
+| GET | `/api/status` | Server info, tools, devices, AVDs, `booting`, `remote` |
+| GET | `/api/pair` | Pairing link and QR SVG (only from the computer itself) |
+| POST | `/api/start` | Start Android if needed and wait until it's ready |
 | POST | `/api/devices/select` | `{serial}` |
 | POST | `/api/avds/boot` | `{name}` |
 | GET | `/api/device/info` | Model, Android version, ABIs, screen |
@@ -99,20 +118,23 @@ so clients can discover that a token is needed.
 | GET | `/api/apks/:id/download` | Original APK |
 | DELETE | `/api/apks/:id` | Remove from library |
 | POST | `/api/apks/:id/install` | `{launch: true}` installs with `-r -t -d -g`, then launches |
-| GET | `/api/apps` | Third-party packages on the device, enriched from the library |
+| GET | `/api/apps` | Third-party packages on the device, enriched from the library (cached while the device is off) |
+| GET | `/api/apps/:package/icon` | Icon from the library, or extracted from the installed APK |
 | POST | `/api/apps/:package/:action` | `launch`, `stop`, `clear`, `uninstall` |
 
 ## iOS app
 
 | File | Role |
 |---|---|
-| `App/AppModel.swift` | Connection, polling, library/installed state, APK import |
-| `Networking/Discovery.swift` | Bonjour browse (`_apricot._tcp`) and IPv4 resolve |
+| `App/AppModel.swift` | Pairing, address fallback, polling, home screen items, APK import |
 | `Networking/APIClient.swift` | REST + upload with progress |
 | `Stream/DeviceStream.swift` | Stream WebSocket, auto-retry, input messages |
 | `Stream/H264Renderer.swift` | Annex-B → AVCC → `VTDecompressionSession` → `AVSampleBufferDisplayLayer` |
 | `Stream/DeviceScreen.swift` | `UIView` handling multi-touch and `UIKeyInput` |
-| `Views/*` | Phone, Apps, Logs, Device, Connect screens |
+| `Views/HomeView.swift` | iOS-style home screen and dock |
+| `Views/AppRunnerView.swift` | One app full screen, edge gestures for Back and close |
+| `Views/QRScannerView.swift` | Pairing scanner (AVFoundation) |
+| `Views/*` | Also: Connect, Phone (whole Android screen), Device (settings), Logs |
 
 The project is defined in `ios/project.yml` ([XcodeGen](https://github.com/yonaskolb/XcodeGen)). The generated
 `Apricot.xcodeproj` is committed so you can build without XcodeGen.

@@ -2,16 +2,22 @@
 
 Start with `curl localhost:7420/api/status` on the computer running the server (PowerShell: `curl.exe localhost:7420/api/status`). It shows which tools were found and which devices adb sees.
 
-### The iPhone doesn't find my computer
-- Both devices must be on the same Wi-Fi network. Guest networks and some office networks block device-to-device traffic.
-- Check that **Settings → Privacy & Security → Local Network → Apricot** is on.
-- Check the firewall (TCP 7420 and UDP 5353 for discovery). See [SETUP.md → Firewall](SETUP.md#firewall).
-  On Windows, make sure the Wi-Fi network profile is **Private**: Windows blocks discovery on *Public* networks.
-- On Linux, if `avahi-daemon` is running and discovery still fails, check that nothing else exclusively owns UDP 5353.
-- Use *Enter address manually* with the IP from the server's startup banner.
+### The iPhone can't connect
+- Make sure `./apricot` is still running on the computer.
+- The tunnel address changes every time the server restarts. Open **http://localhost:7420 → Pair iPhone** and scan again.
+- If the banner says *Remote access unavailable*, the computer couldn't download or start `cloudflared`
+  (a corporate proxy, or no internet). The iPhone still connects on the same Wi-Fi.
+- On the same Wi-Fi, check that **Settings → Privacy & Security → Local Network → Apricot** is on, and that the firewall
+  allows TCP 7420. See [SETUP.md → Firewall](SETUP.md#firewall).
+- "This computer no longer accepts this pairing" means its token changed (`server/data/token` was deleted). Scan the new code.
+
+### Opening an app stays on "Starting Android…"
+The first start of the virtual phone can take a minute or two; later starts resume from a snapshot. If it never
+finishes, run with `APRICOT_HEADLESS=0` to see the emulator window and any error it shows, and check hardware
+acceleration below.
 
 ### "scrcpy-server is missing"
-Run the setup script (`./scripts/setup.sh`, or `scripts\setup-windows.ps1` on Windows). It downloads the server into `server/vendor/`.
+Run the setup script (`./scripts/setup.sh`, or `scripts\setup-windows.ps1` on Windows). It downloads it into `server/vendor/`.
 
 ### "The server version (…) does not match the client"
 The jar in `server/vendor/` and `APRICOT_SCRCPY_VERSION` must match. Re-run the setup script with the same version.
@@ -19,7 +25,7 @@ The jar in `server/vendor/` and `APRICOT_SCRCPY_VERSION` must match. Re-run the 
 ### Black screen, or it stays on "Connecting…"
 - Wait until the emulator has fully booted to the home screen.
 - Check the server log for `scrcpy-server exited`.
-- Lower the resolution: `APRICOT_MAX_SIZE=1280 npm start`.
+- Lower the resolution: `APRICOT_MAX_SIZE=1280 ./apricot`.
 - Some emulator GPU modes can't encode video. In Android Studio set *Graphics* to **Hardware**,
   or add `hw.gpu.mode=host` to `~/.android/avd/<name>.avd/config.ini`.
 
@@ -53,7 +59,7 @@ Apricot turns stylus handwriting off on emulators when streaming starts. If the 
 
 ### Lag or stutter
 - Use 5 GHz Wi-Fi, or set `APRICOT_BIT_RATE=4000000` and `APRICOT_MAX_FPS=30`.
-- Over Tailscale, make sure the connection is direct and not relayed (`tailscale status`).
+- Away from home, the stream goes through Cloudflare. Lower the bit rate (`APRICOT_BIT_RATE=3000000`) on slow connections.
 
 ### Windows: "x86_64 emulation currently requires hardware acceleration"
 Turn on **Windows Hypervisor Platform** and enable virtualization in the BIOS. See [SETUP.md → Hardware acceleration](SETUP.md#windows).

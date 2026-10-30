@@ -10,21 +10,18 @@ Apricot's server runs on **macOS, Windows or Linux** and needs three things:
 
 You also need [Node.js 20+](https://nodejs.org). The script installs Java if it's missing, because the Android SDK tools need it.
 
-## Option A: the setup script (recommended)
+## Option A: just run it (recommended)
 
 **macOS / Linux**
 
 ```bash
-./scripts/setup.sh
+./apricot
 ```
 
-**Windows** (PowerShell, from the repo folder)
+**Windows:** double-click `apricot.cmd`, or run it from a terminal in the repo folder.
 
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts\setup-windows.ps1
-```
-
-The script:
+The first run calls the setup script (`scripts/setup.sh`, or `scripts\setup-windows.ps1` on Windows), then starts the
+server. Later runs skip straight to starting. To re-run setup by hand, run the script directly. It:
 
 1. Checks for Node.js 20+ and Java. If Java is missing it installs it: Homebrew on macOS, `apt`/`dnf`/`pacman`
    on Linux (asks for `sudo`), `winget` on Windows.
@@ -38,8 +35,8 @@ The script:
    | Linux | `~/Android/Sdk` |
 
 3. Checks hardware acceleration and tells you exactly what to fix if it's missing.
-4. Creates a virtual phone called **Apricot_Phone** (Pixel 7, Android 15, Google APIs) unless you already have
-   virtual devices. Apple Silicon gets the `arm64-v8a` image; Intel/AMD PCs get `x86_64`.
+4. Creates a slim virtual phone called **Apricot_Phone** (Pixel 7, Android 15, Google APIs, 2 GB RAM, no cameras or
+   microphone) unless you already have virtual devices. Apple Silicon gets the `arm64-v8a` image; Intel/AMD PCs get `x86_64`.
 5. Downloads `scrcpy-server` into `server/vendor/` and runs `npm install` in `server/`.
 
 You can re-run it at any time; it skips steps that are already done. To change its defaults:
@@ -95,25 +92,29 @@ On Windows you may need your phone maker's USB driver.
 ## Starting the server
 
 ```bash
-cd server
-npm start
+./apricot          # Windows: apricot.cmd
 ```
 
-The startup banner shows what's ready:
+The startup banner shows what's ready, then a QR code to scan with the iPhone app:
 
 ```
   Apricot v0.1.0  -  Android apps on your iPhone
 
-  Dashboard   http://localhost:7420
-  iPhone      http://192.168.1.20:7420
-
   ✔ adb            /home/you/Android/Sdk/platform-tools/adb
   ✔ scrcpy-server  v5.0.1
-  ✔ emulator       1 virtual device(s)
-  ✘ devices        none running yet - boot one from the app or dashboard
+  ✔ emulator       1 virtual phone(s), starts automatically when you open an app
+
+  Opening a secure tunnel for remote access…
+
+  Scan with your iPhone camera to connect  (works on Wi-Fi and cellular)
+  ▄▄▄▄▄▄▄ ▄ ▄ ▄ …
 ```
 
-You can boot the emulator from the iPhone app, the dashboard, Android Studio, or a terminal:
+You don't need to start Android yourself. When you open an app on the iPhone, Apricot boots the first virtual phone
+in the background (no window), and after 10 minutes without anyone watching it shuts it down again. The emulator saves a
+quick-boot snapshot when it stops, so the next start takes seconds. Set `APRICOT_HEADLESS=0` to see the emulator window.
+
+You can still start an emulator yourself, from Android Studio or a terminal:
 
 ```bash
 ~/Library/Android/sdk/emulator/emulator -avd Apricot_Phone -gpu host     # macOS
@@ -128,19 +129,31 @@ Use `-gpu host` when you start it yourself. With other GPU modes the emulator ba
 captures, and the stream lags by seconds. Apricot passes this flag automatically when it boots an emulator.
 On a machine without a GPU (a headless server, a VM), use `APRICOT_EMULATOR_GPU=swiftshader_indirect` instead.
 
+### Pairing and remote access
+
+The QR code holds your computer's name, a random token, its local address and a remote address from a free
+Cloudflare quick tunnel. The tunnel needs no account and no open ports: `cloudflared` (downloaded into `server/vendor/`
+on first use) makes an outbound connection to Cloudflare, which gives you a `https://….trycloudflare.com` address.
+
+- At home the iPhone connects directly over Wi-Fi (fastest). Elsewhere it uses the tunnel.
+- The tunnel address changes each time the server starts. If the iPhone can't reach either address, scan the new code
+  (dashboard → **Pair iPhone**).
+- To unpair every phone, delete `server/data/token` and restart. A new token is generated.
+- To turn the tunnel off, set `APRICOT_REMOTE=0`.
+
 ### Firewall
 
-The iPhone needs to reach TCP port **7420**, and auto-discovery uses mDNS (UDP **5353**).
+On your own Wi-Fi the iPhone connects to TCP port **7420**. The tunnel needs no incoming ports.
 
 - **macOS:** allow incoming connections for `node` if the firewall asks.
 - **Windows:** when Windows Defender Firewall asks about Node.js, allow it on **Private networks**. Make sure
   your Wi-Fi network profile is *Private*, not *Public*.
-- **Linux:** with `ufw`, run `sudo ufw allow 7420/tcp && sudo ufw allow mdns`. With `firewalld`, run
-  `sudo firewall-cmd --add-port=7420/tcp --add-service=mdns --permanent && sudo firewall-cmd --reload`.
+- **Linux:** with `ufw`, run `sudo ufw allow 7420/tcp`. With `firewalld`, run
+  `sudo firewall-cmd --add-port=7420/tcp --permanent && sudo firewall-cmd --reload`.
 
 ### Run it in the background
 
-- **macOS / Linux:** `cd server && nohup npm start > ~/apricot.log 2>&1 &`. To start it at login, use a
+- **macOS / Linux:** `nohup ./apricot > ~/apricot.log 2>&1 &` (the QR code is in the log, or use the dashboard). To start it at login, use a
   LaunchAgent (macOS) or a systemd user service (Linux) that runs `node /path/to/apricot/server/src/index.js`.
 - **Windows:** `Start-Process -WindowStyle Hidden node -ArgumentList "src\index.js" -WorkingDirectory server`.
   To start it at login, add a Task Scheduler task with the same command.
@@ -151,7 +164,7 @@ The scrcpy-server version must match exactly what the server passes to it. To mo
 
 ```bash
 APRICOT_SCRCPY_VERSION=5.1 ./scripts/setup.sh
-APRICOT_SCRCPY_VERSION=5.1 npm start
+APRICOT_SCRCPY_VERSION=5.1 ./apricot
 ```
 
 ## Checking everything end to end

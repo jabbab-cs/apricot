@@ -130,8 +130,9 @@ if (-not $NoEmulator) {
         Invoke-Checked $AvdManager @('create', 'avd', '--force', '--name', $AvdName, '--package', $Image, '--device', $AvdDevice) -Stdin 'no'
         $config = Join-Path $env:USERPROFILE ".android\avd\$AvdName.avd\config.ini"
         if (Test-Path $config) {
-            # Hardware keyboard, host GPU (needed for a smooth stream) and a sensible amount of RAM
-            $wanted = [ordered]@{ 'hw.keyboard' = 'yes'; 'hw.gpu.enabled' = 'yes'; 'hw.gpu.mode' = 'host'; 'hw.ramSize' = '4096' }
+            # Hardware keyboard, host GPU (needed for a smooth stream); no cameras or mic, modest RAM: it runs in the background
+            $wanted = [ordered]@{ 'hw.keyboard' = 'yes'; 'hw.gpu.enabled' = 'yes'; 'hw.gpu.mode' = 'host'; 'hw.ramSize' = '2048';
+                'hw.camera.back' = 'none'; 'hw.camera.front' = 'none'; 'hw.audioInput' = 'no'; 'showDeviceFrame' = 'no' }
             $lines = @(Get-Content $config | Where-Object { -not $wanted.Contains(($_ -split '=', 2)[0]) })
             $lines += @($wanted.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" })
             Set-Content -Path $config -Value $lines -Encoding ASCII
@@ -159,11 +160,9 @@ Push-Location (Join-Path $Root 'server')
 try { Invoke-Checked 'npm.cmd' @('install', '--silent') } finally { Pop-Location }
 Ok 'npm install done'
 
-Write-Host ""
-Write-Host '  All set. Start Apricot with:' -ForegroundColor White
+New-Item -ItemType File -Force -Path (Join-Path $vendor '.setup-done') | Out-Null
+
 Write-Host ''
-Write-Host '    cd server; npm start'
-Write-Host ''
-Write-Host '  Then open the Apricot app on your iPhone (same Wi-Fi) - it finds this PC automatically.'
+Write-Host '  All set.' -ForegroundColor White
 Write-Host '  When Windows asks, allow Node.js through the firewall on Private networks.'
 Write-Host ''

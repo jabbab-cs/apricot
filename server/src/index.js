@@ -3,18 +3,21 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import http from 'node:http';
-import os from 'node:os';
 import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { WebSocketServer } from 'ws';
 import { config } from './config.js';
 import { DeviceManager, assertPackage } from './devices.js';
-import { advertise, computerName } from './discovery.js';
+import { computerName, lanAddresses } from './host.js';
 import { ApkLibrary, prettifyPackage } from './library.js';
 import { streamLogcat } from './logcat.js';
+import { loadToken, pairingLink, qrSvg, qrTerminal } from './pairing.js';
 import { KEYCODES, TOUCH_DOWN, TOUCH_MOVE, TOUCH_UP } from './scrcpy.js';
+import { Tunnel } from './tunnel.js';
 
-const SETUP_HINT = process.platform === 'win32' ? 'scripts\\setup-windows.ps1' : 'scripts/setup.sh';
+const SETUP_HINT = process.platform === 'win32' ? 'apricot.cmd' : './apricot';
+const TOKEN = loadToken();
+const tunnel = new Tunnel();
 const VERSION = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url))).version;
 const devices = new DeviceManager();
 const library = new ApkLibrary(config.dataDir);
@@ -45,20 +48,25 @@ async function readJson(req) {
   }
 }
 
+/** Requests from this computer itself (the dashboard), not relayed by the tunnel. */
+function isLocal(req) {
+  const a = req.socket.remoteAddress ?? '';
+  const loopback = a === '127.0.0.1' || a === '::1' || a === '::ffff:127.0.0.1';
+  return loopback && !req.headers['cf-connecting-ip'] && !req.headers['cf-ray'];
+}
+
 function authorized(req, url) {
-  if (!config.token) return true;
+  if (isLocal(req)) return true;
   const header = req.headers.authorization ?? '';
   const given = header.startsWith('Bearer ') ? header.slice(7) : url.searchParams.get('token') ?? '';
   const a = Buffer.from(given);
-  const b = Buffer.from(config.token);
+  const b = Buffer.from(TOKEN);
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-function lanAddresses() {
-  return Object.values(os.networkInterfaces())
-    .flat()
-    .filter((i) => i && i.family === 'IPv4' && !i.internal)
-    .map((i) => i.address);
+function pairing() {
+  const urls = [...lanAddresses().map((ip) => `http://${ip}:${config.port}`), ...(tunnel.url ? [tunnel.url] : [])];
+  return { link: pairingLink({ name: computerName(), token: TOKEN, urls }), urls, remote: tunnel.url, remoteEnabled: config.remote, remoteError: tunnel.error };
 }
 
 const MIME = {
@@ -122,9 +130,19 @@ route('GET', '/api/status', async () => ({
   host: computerName(),
   addresses: lanAddresses(),
   port: config.port,
-  authRequired: Boolean(config.token),
+  authRequired: true,
+  remote: tunnel.url,
   ...(await devices.status()),
 }));
+
+// Only the dashboard on this computer may read the pairing code: it contains the token.
+route('GET', '/api/pair', async (req) => {
+  if (!isLocal(req)) throw Object.assign(new Error('Pairing is only available on the computer running Apricot'), { status: 403 });
+  const p = pairing();
+  return { ...p, svg: await qrSvg(p.link) };
+});
+
+route('POST', '/api/start', async () => ({ serial: (await devices.device()).serial }));
 
 route('POST', '/api/devices/select', async (req) => {
   const { serial } = await readJson(req);
@@ -173,7 +191,8 @@ route('GET', '/api/apks', () => library.list());
 route('POST', '/api/apks', (req) => receiveUpload(req));
 
 route('GET', '/api/apks/:id/icon', async (_req, res, { id }) => {
-  const meta = await library.get(id);
+  let meta = await library.get(id);
+  if (meta) meta = await library.ensureIcon(meta);
   if (!meta?.hasIcon) return sendJson(res, 404, { error: 'No icon' });
   res.writeHead(200, { 'Content-Type': meta.iconType ?? 'image/png', 'Cache-Control': 'max-age=86400' });
   fs.createReadStream(library.iconPath(id)).pipe(res);
@@ -203,19 +222,40 @@ route('POST', '/api/apks/:id/install', async (req, _res, { id }) => {
   return { ok: true, packageName: meta.packageName };
 });
 
+// The home screen must not empty out while the emulator is shut down, so the last list is kept on disk.
+const installedCache = path.join(config.dataDir, 'installed.json');
+
 route('GET', '/api/apps', async () => {
+  const { selectedSerial } = await devices.status();
+  if (!selectedSerial) {
+    return JSON.parse(await fsp.readFile(installedCache, 'utf8').catch(() => '[]'));
+  }
   const [packages, apks] = await Promise.all([devices.installedPackages(), library.list()]);
   const byPackage = new Map(apks.map((a) => [a.packageName, a]));
-  return packages.map((pkg) => {
+  const apps = await Promise.all(packages.map(async (pkg) => {
     const apk = byPackage.get(pkg);
     return {
       packageName: pkg,
-      label: apk?.label ?? prettifyPackage(pkg),
+      label: apk?.label ?? (await devices.cachedLabel(pkg)) ?? prettifyPackage(pkg),
       apkId: apk?.id ?? null,
-      hasIcon: Boolean(apk?.hasIcon),
+      hasIcon: true,
       versionName: apk?.versionName ?? null,
     };
-  });
+  }));
+  await fsp.writeFile(installedCache, JSON.stringify(apps));
+  return apps;
+});
+
+route('GET', '/api/apps/:pkg/icon', async (_req, res, { pkg }) => {
+  pkg = decodeURIComponent(pkg);
+  let meta = (await library.list()).find((a) => a.packageName === pkg);
+  if (meta) meta = await library.ensureIcon(meta);
+  const icon = meta?.hasIcon
+    ? { data: await fsp.readFile(library.iconPath(meta.id)), type: meta.iconType ?? 'image/png' }
+    : await devices.appIcon(pkg);
+  if (!icon) return sendJson(res, 404, { error: 'No icon' });
+  res.writeHead(200, { 'Content-Type': icon.type, 'Cache-Control': 'max-age=86400' });
+  res.end(icon.data);
 });
 
 route('POST', '/api/apps/:pkg/:action', async (_req, _res, { pkg, action }) => {
@@ -233,7 +273,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return res.writeHead(204).end();
 
   if (!url.pathname.startsWith('/api/')) return serveStatic(res, url.pathname);
-  if (url.pathname !== '/api/status' && !authorized(req, url)) return sendJson(res, 401, { error: 'Unauthorized' });
+  if (!authorized(req, url)) return sendJson(res, 401, { error: 'Unauthorized' });
 
   for (const r of routes) {
     const m = r.method === req.method && r.re.exec(url.pathname);
@@ -396,13 +436,12 @@ async function handleStream(ws, url) {
 
 // ---------- shutdown ----------
 
-let stopAdvertising = async () => {};
 let shuttingDown = false;
 async function shutdown() {
   if (shuttingDown) return;
   shuttingDown = true;
   for (const { session } of devices.sessions.values()) session.stop('server shutting down');
-  await stopAdvertising(); // sends mDNS goodbyes so phones don't keep listing a stale entry
+  tunnel.stop();
   process.exit(0);
 }
 process.on('SIGINT', shutdown);
@@ -410,21 +449,42 @@ process.on('SIGTERM', shutdown);
 
 // ---------- start ----------
 
+async function printPairing() {
+  const c = (code, text) => (process.stdout.isTTY ? `\x1b[${code}m${text}\x1b[0m` : text);
+  const p = pairing();
+  console.log(`\n  ${c(1, 'Scan with your iPhone camera to connect')}${p.remote ? c(2, '  (works on Wi-Fi and cellular)') : ''}\n`);
+  console.log((await qrTerminal(p.link)).replace(/^/gm, '  '));
+  console.log(`  ${c(2, 'Or open')} ${c(1, `http://localhost:${config.port}`)} ${c(2, 'and click "Pair iPhone".')}\n`);
+}
+
 server.listen(config.port, config.host, async () => {
-  if (config.bonjour) stopAdvertising = advertise({ port: config.port, version: VERSION });
   const s = await devices.status();
   const c = (code, text) => (process.stdout.isTTY ? `\x1b[${code}m${text}\x1b[0m` : text);
   const ok = (v) => (v ? c(32, '✔') : c(31, '✘'));
   const ready = s.devices.filter((d) => d.state === 'device');
 
   console.log(`\n  ${c('38;5;209;1', 'Apricot')} ${c(2, `v${VERSION}`)}  -  Android apps on your iPhone\n`);
-  console.log(`  Dashboard   ${c(1, `http://localhost:${config.port}`)}`);
-  for (const ip of lanAddresses()) console.log(`  iPhone      ${c(1, `http://${ip}:${config.port}`)}`);
-  console.log('');
   console.log(`  ${ok(s.tools.adb)} adb            ${c(2, s.tools.adb ?? `not found - run ${SETUP_HINT}`)}`);
   console.log(`  ${ok(s.tools.scrcpyServer)} scrcpy-server  ${c(2, s.tools.scrcpyServer ? `v${s.tools.scrcpyServer}` : `missing - run ${SETUP_HINT}`)}`);
-  console.log(`  ${ok(s.tools.emulator)} emulator       ${c(2, s.tools.emulator ? `${s.avds.length} virtual device(s)` : 'not found - install Android Studio')}`);
-  console.log(`  ${ok(ready.length)} devices        ${c(2, ready.length ? ready.map((d) => d.model).join(', ') : 'none running yet - boot one from the app or dashboard')}`);
-  if (config.token) console.log(`\n  ${c(33, 'Token auth enabled')} (APRICOT_TOKEN)`);
-  console.log('');
+  console.log(`  ${ok(s.tools.emulator)} emulator       ${c(2, s.tools.emulator ? `${s.avds.length} virtual phone(s), starts automatically when you open an app` : `not found - run ${SETUP_HINT}`)}`);
+  if (ready.length) console.log(`  ${ok(true)} running        ${c(2, ready.map((d) => d.model).join(', '))}`);
+
+  if (!config.remote) return printPairing();
+  console.log(`\n  ${c(2, 'Opening a secure tunnel for remote access…')}`);
+  let printed = false;
+  const print = () => {
+    if (printed) return;
+    printed = true;
+    printPairing();
+  };
+  tunnel.on('url', (u) => {
+    if (printed) console.log(`  Remote address changed to ${u}. Scan the new QR code from the dashboard.`);
+    print();
+  });
+  tunnel.on('error', (msg) => {
+    console.log(`  ${c(33, msg)}`);
+    print();
+  });
+  setTimeout(print, 20_000); // never hold the QR code back forever
+  tunnel.start(config.port);
 });

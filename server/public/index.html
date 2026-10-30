@@ -16,6 +16,7 @@
       <span>Apricot</span>
     </div>
     <div class="topbar-right">
+      <button class="btn pair-btn" id="pair-btn">Pair iPhone</button>
       <label class="device-picker">
         <span class="dot" id="device-dot"></span>
         <select id="device-select" aria-label="Device"></select>
@@ -104,5 +105,12 @@
 
   <div class="toasts" id="toasts"></div>
   <script type="module" src="app.js"></script>
+  <dialog id="pair-dialog" class="pair-dialog">
+    <h2>Pair your iPhone</h2>
+    <p>Open the Apricot app and tap <b>Scan QR code</b>, or point the iPhone Camera at it.</p>
+    <div class="qr" id="pair-qr"></div>
+    <p class="pair-note" id="pair-note"></p>
+    <form method="dialog"><button class="btn">Done</button></form>
+  </dialog>
 </body>
 </html>

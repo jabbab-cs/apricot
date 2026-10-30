@@ -2,7 +2,7 @@
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
 
-const SETUP_SCRIPT = /Windows/.test(navigator.userAgent) ? 'scripts\\setup-windows.ps1' : 'scripts/setup.sh';
+const SETUP_SCRIPT = /Windows/.test(navigator.userAgent) ? 'apricot.cmd' : './apricot';
 const state = { status: null, token: localStorage.getItem('apricot.token') ?? '', serial: null };
 
 // ---------- api ----------
@@ -588,15 +588,34 @@ async function renderDevicePanel() {
     : `<div class="empty">No virtual devices. Run ${SETUP_SCRIPT} or create one in Android Studio.</div>`;
   avds.querySelectorAll('[data-boot]').forEach((b) => (b.onclick = () => bootAvd(b.dataset.boot, b)));
 
-  const urls = s.addresses.map((ip) => `<code>http://${ip}:${s.port}</code>`).join(' or ');
   $('#connect-card').innerHTML = `
     <ol>
       <li>Install the Apricot iOS app (see <code>docs/SIDELOADING.md</code>).</li>
-      <li>Join the same Wi-Fi as this computer. It appears automatically as <b>Apricot on ${esc(s.host)}</b>.</li>
-      <li>Or enter ${urls || 'this computer’s IP'} manually${s.authRequired ? ' together with your token' : ''}.</li>
-      <li>Away from home? Install Tailscale on both and use this computer's Tailscale IP.</li>
+      <li>Click <b>Pair iPhone</b> above and scan the QR code. That's it.</li>
+      <li>${s.remote ? 'Remote access is on: your iPhone connects from any network.' : 'Remote access is off, so the iPhone must be on the same Wi-Fi.'}</li>
     </ol>`;
 }
+
+// ---------- pairing ----------
+
+async function showPairing() {
+  const dialog = $('#pair-dialog');
+  if (!dialog.open) dialog.showModal();
+  try {
+    const p = await api('/api/pair');
+    $('#pair-qr').innerHTML = p.svg;
+    $('#pair-note').textContent = p.remote
+      ? 'Works on any network: home Wi-Fi, other Wi-Fi or cellular.'
+      : !p.remoteEnabled
+        ? 'Remote access is off (APRICOT_REMOTE=0): the iPhone must be on this Wi-Fi.'
+        : p.remoteError ?? 'Remote access is starting… the code works on this Wi-Fi meanwhile.';
+    // The tunnel address can still arrive; refresh while the dialog stays open.
+    if (!p.remote && p.remoteEnabled && dialog.open) setTimeout(() => dialog.open && showPairing(), 4000);
+  } catch (err) {
+    $('#pair-note').textContent = err.message;
+  }
+}
+$('#pair-btn').addEventListener('click', showPairing);
 
 // ---------- tabs & boot ----------
 

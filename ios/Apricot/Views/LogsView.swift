@@ -11,7 +11,6 @@ struct LogsView: View {
     private let levels = [("V", "Verbose"), ("D", "Debug"), ("I", "Info"), ("W", "Warn"), ("E", "Error")]
 
     var body: some View {
-        NavigationStack {
             Group {
                 if model.selectedSerial == nil {
                     ContentUnavailableView("No device running", systemImage: "text.alignleft", description: Text("Logs appear here once a device is running."))
@@ -43,7 +42,6 @@ struct LogsView: View {
                     Button { logcat.clear() } label: { Image(systemName: "trash") }
                 }
             }
-        }
         .onAppear(perform: restart)
         .onDisappear { logcat.stop() }
         .onChange(of: package) { restart() }

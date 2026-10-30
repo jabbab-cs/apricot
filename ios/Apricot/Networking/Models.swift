@@ -1,19 +1,31 @@
 import Foundation
 
+/// A paired computer. `urls` comes from its QR code: LAN addresses first, then the remote tunnel.
 struct ServerEndpoint: Codable, Hashable {
     var name: String
-    var host: String
-    var port: Int
-    var token: String?
+    var urls: [String]
+    var token: String
+    /// The address that answered last; tried first next time.
+    var active: String?
 
-    var displayAddress: String { "\(host):\(port)" }
+    var baseURL: URL? { URL(string: active ?? urls.first ?? "") }
+    var isRemote: Bool { baseURL?.scheme == "https" }
 
-    func url(scheme: String = "http") -> URL? {
-        var c = URLComponents()
-        c.scheme = scheme
-        c.host = host
-        c.port = port
-        return c.url
+    /// Parses `apricot://pair?n=<name>&t=<token>&u=<url>&u=<url>`.
+    init?(pairingURL: URL) {
+        guard pairingURL.scheme == "apricot",
+              let items = URLComponents(url: pairingURL, resolvingAgainstBaseURL: false)?.queryItems else { return nil }
+        let urls = items.filter { $0.name == "u" }.compactMap(\.value).filter { URL(string: $0)?.host != nil }
+        guard let token = items.first(where: { $0.name == "t" })?.value, !token.isEmpty, !urls.isEmpty else { return nil }
+        name = items.first(where: { $0.name == "n" })?.value ?? "Computer"
+        self.urls = urls
+        self.token = token
+    }
+
+    /// Candidates in the order to try them: the last one that worked, then the rest as listed.
+    var candidates: [String] {
+        guard let active, urls.contains(active) else { return urls }
+        return [active] + urls.filter { $0 != active }
     }
 }
 
@@ -30,12 +42,13 @@ struct ServerStatus: Decodable {
     let host: String
     let addresses: [String]
     let port: Int
-    let authRequired: Bool
     let tools: Tools
     let devices: [AndroidDevice]
     let selectedSerial: String?
     let avds: [String]
     let runningAvds: [String]?
+    let booting: Bool?
+    let remote: String?
 
     var readyDevices: [AndroidDevice] { devices.filter { $0.state == "device" } }
     var selectedDevice: AndroidDevice? { devices.first { $0.serial == selectedSerial } }

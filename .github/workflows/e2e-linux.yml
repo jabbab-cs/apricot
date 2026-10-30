@@ -16,7 +16,7 @@ jobs:
     env:
       # CI runners have no GPU and no display.
       APRICOT_EMULATOR_GPU: swiftshader_indirect
-      APRICOT_HEADLESS: '1'
+      APRICOT_REMOTE: '0'
       APRICOT_BONJOUR: '0'
     steps:
       - uses: actions/checkout@v4
@@ -39,12 +39,11 @@ jobs:
         run: |
           nohup node src/index.js > ../server.log 2>&1 &
           for i in $(seq 1 20); do curl -sf localhost:7420/api/status > /dev/null && break; sleep 0.5; done
-      - name: Boot emulator through Apricot
+      - name: Let Apricot start Android on demand
         run: |
-          curl -sf -X POST -H 'Content-Type: application/json' -d '{"name":"Apricot_Phone"}' localhost:7420/api/avds/boot
+          # The same call the iPhone app makes: boots the virtual phone and waits until Android is up.
+          curl -sf --max-time 900 -X POST localhost:7420/api/start
           ADB="$HOME/Android/Sdk/platform-tools/adb"
-          timeout 600 "$ADB" wait-for-device
-          timeout 600 bash -c "until [ \"\$($ADB shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')\" = 1 ]; do sleep 3; done"
           "$ADB" shell settings put global window_animation_scale 0
           "$ADB" shell input keyevent 82
           sleep 15

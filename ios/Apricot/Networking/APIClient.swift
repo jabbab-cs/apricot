@@ -9,11 +9,13 @@ struct APIError: LocalizedError {
 final class APIClient: @unchecked Sendable {
     let endpoint: ServerEndpoint
     private let session: URLSession
+    private let requestTimeout: TimeInterval
 
-    init(endpoint: ServerEndpoint) {
+    init(endpoint: ServerEndpoint, requestTimeout: TimeInterval = 15) {
         self.endpoint = endpoint
+        self.requestTimeout = requestTimeout
         let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 15
+        config.timeoutIntervalForRequest = requestTimeout
         config.timeoutIntervalForResource = 600
         config.waitsForConnectivity = false
         session = URLSession(configuration: config)
@@ -21,20 +23,23 @@ final class APIClient: @unchecked Sendable {
 
     // MARK: URLs
 
-    func url(_ path: String, query: [URLQueryItem] = [], scheme: String = "http") -> URL {
-        var c = URLComponents(url: endpoint.url(scheme: scheme)!, resolvingAgainstBaseURL: false)!
+    func url(_ path: String, query: [URLQueryItem] = [], webSocket: Bool = false) -> URL {
+        var c = URLComponents(url: endpoint.baseURL!, resolvingAgainstBaseURL: false)!
+        if webSocket { c.scheme = c.scheme == "https" ? "wss" : "ws" }
         c.path = path
-        var items = query
-        if let token = endpoint.token, !token.isEmpty { items.append(URLQueryItem(name: "token", value: token)) }
-        c.queryItems = items.isEmpty ? nil : items
+        c.queryItems = query + [URLQueryItem(name: "token", value: endpoint.token)]
         return c.url!
     }
 
     func webSocketURL(_ path: String, query: [URLQueryItem] = []) -> URL {
-        url(path, query: query, scheme: "ws")
+        url(path, query: query, webSocket: true)
     }
 
     func iconURL(apkId: String) -> URL { url("/api/apks/\(apkId)/icon") }
+
+    func iconURL(package: String) -> URL {
+        url("/api/apps/\(package.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? package)/icon")
+    }
 
     // MARK: Requests
 
@@ -42,9 +47,7 @@ final class APIClient: @unchecked Sendable {
         var req = URLRequest(url: url(path))
         req.httpMethod = method
         req.timeoutInterval = timeout
-        if let token = endpoint.token, !token.isEmpty {
-            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
+        req.setValue("Bearer \(endpoint.token)", forHTTPHeaderField: "Authorization")
         if let body {
             req.setValue("application/json", forHTTPHeaderField: "Content-Type")
             req.httpBody = try JSONSerialization.data(withJSONObject: body)
@@ -56,13 +59,13 @@ final class APIClient: @unchecked Sendable {
         guard let http = response as? HTTPURLResponse else { throw APIError(message: "No response from server") }
         guard (200..<300).contains(http.statusCode) else {
             let message = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["error"] as? String
-            if http.statusCode == 401 { throw APIError(message: "Wrong or missing token for this server.") }
+            if http.statusCode == 401 { throw APIError(message: "This computer no longer accepts this pairing. Scan its QR code again.") }
             throw APIError(message: message ?? "Server error \(http.statusCode)")
         }
     }
 
     func get<T: Decodable>(_ path: String, as type: T.Type = T.self) async throws -> T {
-        let (data, response) = try await session.data(for: makeRequest(path, method: "GET", body: nil, timeout: 15))
+        let (data, response) = try await session.data(for: makeRequest(path, method: "GET", body: nil, timeout: requestTimeout))
         try check(data, response)
         return try JSONDecoder().decode(T.self, from: data)
     }

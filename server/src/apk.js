@@ -1,6 +1,7 @@
 // Dependency-free APK inspector: reads the zip, decodes the binary
 // AndroidManifest.xml and resolves label/icon through resources.arsc.
 import zlib from 'node:zlib';
+import { renderIcon } from './icon.js';
 
 // ---------- zip ----------
 
@@ -60,6 +61,7 @@ const RES_TABLE_TYPE = 0x0201;
 
 const TYPE_REFERENCE = 0x01;
 const TYPE_STRING = 0x03;
+const TYPE_FLOAT = 0x04;
 const TYPE_INT_DEC = 0x10;
 const TYPE_INT_HEX = 0x11;
 const TYPE_BOOLEAN = 0x12;
@@ -152,6 +154,7 @@ export function parseBinaryXml(buf) {
         else if (dataType === TYPE_REFERENCE) value = { ref: data };
         else if (dataType === TYPE_INT_DEC || dataType === TYPE_INT_HEX) value = data | 0;
         else if (dataType === TYPE_BOOLEAN) value = data !== 0;
+        else if (dataType === TYPE_FLOAT) value = buf.readFloatLE(a + 16);
         else value = data;
         attrs[attrName] = value;
       }
@@ -260,7 +263,7 @@ function parsePackage(buf, start, size, getStrings, table) {
   }
 }
 
-function resolveAll(table, value, depth = 0) {
+export function resolveAll(table, value, depth = 0) {
   if (typeof value !== 'object' || value === null) return [{ value, density: 0, language: 0 }];
   if (depth > 5) return [];
   const list = table.get(value.ref) ?? [];
@@ -324,7 +327,13 @@ export function inspectApk(buf) {
   const labels = application.label !== undefined ? resolveAll(table, application.label) : [];
   const label = (labels.find((l) => l.language === 0) ?? labels[0])?.value;
 
-  const iconPath = pickIcon(zip, table, application.icon);
+  let iconPath = pickIcon(zip, table, application.icon);
+  let icon = iconPath ? zip.read(iconPath) : null;
+  if (!icon) {
+    // Modern apps often ship only an adaptive/vector icon: draw it.
+    icon = renderIcon(zip, table, application.icon) ?? renderIcon(zip, table, application.roundIcon);
+    if (icon) iconPath = 'rendered.png';
+  }
   const abis = [...new Set([...zip.entries.keys()].map((n) => n.match(/^lib\/([^/]+)\//)?.[1]).filter(Boolean))];
 
   const asString = (v) => (v === undefined || v === null || typeof v === 'object' ? null : String(v));
@@ -337,6 +346,6 @@ export function inspectApk(buf) {
     targetSdk: typeof usesSdk.targetSdkVersion === 'number' ? usesSdk.targetSdkVersion : null,
     abis,
     iconPath,
-    icon: iconPath ? zip.read(iconPath) : null,
+    icon,
   };
 }

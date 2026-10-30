@@ -22,8 +22,10 @@ function int(name, fallback) {
 export const config = {
   port: int('APRICOT_PORT', 7420),
   host: process.env.APRICOT_HOST ?? '0.0.0.0',
-  // Optional shared secret. When set, every API/WebSocket request must carry it.
+  // Shared secret for every API/WebSocket request. Generated on first run when unset (see pairing.js).
   token: process.env.APRICOT_TOKEN || null,
+  // Remote access from anywhere through a free Cloudflare quick tunnel.
+  remote: process.env.APRICOT_REMOTE !== '0',
   dataDir: path.resolve(process.env.APRICOT_DATA_DIR ?? path.join(SERVER_ROOT, 'data')),
   publicDir: path.join(SERVER_ROOT, 'public'),
   vendorDir: path.join(SERVER_ROOT, 'vendor'),
@@ -35,8 +37,10 @@ export const config = {
     bitRate: int('APRICOT_BIT_RATE', 8_000_000),
     maxFps: int('APRICOT_MAX_FPS', 60),
   },
-  emulatorHeadless: process.env.APRICOT_HEADLESS === '1',
+  // The emulator runs in the background with no window; set APRICOT_HEADLESS=0 to see it.
+  emulatorHeadless: process.env.APRICOT_HEADLESS !== '0',
   emulatorGpu: process.env.APRICOT_EMULATOR_GPU ?? 'host',
-  bonjour: process.env.APRICOT_BONJOUR !== '0',
+  // Shut down an emulator Apricot started after this many minutes without viewers (0 = never).
+  idleMinutes: int('APRICOT_IDLE_MINUTES', 10),
   maxUploadBytes: int('APRICOT_MAX_UPLOAD_MB', 1024) * 1024 * 1024,
 };

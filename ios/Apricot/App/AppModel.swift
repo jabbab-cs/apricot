@@ -6,8 +6,13 @@ extension UTType {
     static let apk = UTType(importedAs: "com.android.package-archive")
 }
 
-enum AppTab: Hashable {
-    case phone, apps, logs, device
+/// One icon on the home screen: an installed app, or an APK in the library that isn't installed yet.
+struct HomeItem: Identifiable, Hashable {
+    let id: String
+    let label: String
+    let packageName: String?
+    let installed: Bool
+    let apk: LibraryAPK?
 }
 
 struct Banner: Identifiable, Equatable {
@@ -32,7 +37,10 @@ final class AppModel {
     private(set) var uploadProgress: Double?
     private(set) var busyIds: Set<String> = []
 
-    var selectedTab: AppTab = .phone
+    /// The app shown full screen, or nil for the home screen.
+    var openApp: HomeItem?
+    /// The whole Android screen (launcher, settings…), shown full screen.
+    var showAndroid = false
     var banner: Banner?
 
     @ObservationIgnored private var pollTask: Task<Void, Never>?
@@ -51,26 +59,47 @@ final class AppModel {
 
     // MARK: Connection
 
+    /// Handles an `apricot://pair` link from the QR scanner or the iPhone Camera.
+    func pair(with url: URL) async {
+        guard let endpoint = ServerEndpoint(pairingURL: url) else {
+            show("That isn't an Apricot pairing code.", isError: true)
+            return
+        }
+        await connect(to: endpoint)
+        if isConnected { show("Connected to \(endpoint.name)") }
+    }
+
+    /// Tries the computer's addresses in order (LAN first, then the remote tunnel) and keeps the first that answers.
     func connect(to endpoint: ServerEndpoint) async {
+        guard !isConnecting else { return }
         isConnecting = true
         connectionError = nil
         defer { isConnecting = false }
-        let client = APIClient(endpoint: endpoint)
-        do {
-            let status: ServerStatus = try await client.get("/api/status")
-            if status.authRequired, (endpoint.token ?? "").isEmpty {
-                throw APIError(message: "This server requires a token. Enter the APRICOT_TOKEN value.")
+        var lastError: Error = APIError(message: "Couldn't reach \(endpoint.name).")
+        for candidate in endpoint.candidates {
+            var attempt = endpoint
+            attempt.active = candidate
+            // A LAN address that isn't reachable (you're away from home) should fail fast.
+            let probe = APIClient(endpoint: attempt, requestTimeout: attempt.isRemote ? 12 : 3)
+            do {
+                let _: [LibraryAPK] = try await probe.get("/api/apks") // also checks the token
+                let status: ServerStatus = try await probe.get("/api/status")
+                self.endpoint = attempt
+                self.api = APIClient(endpoint: attempt)
+                self.status = status
+                UserDefaults.standard.set(try? JSONEncoder().encode(attempt), forKey: storeKey)
+                startPolling()
+                await refreshAll()
+                return
+            } catch let error as APIError {
+                lastError = error
+                break // the server answered but refused: another address won't help
+            } catch {
+                lastError = error
             }
-            self.endpoint = endpoint
-            self.api = client
-            self.status = status
-            UserDefaults.standard.set(try? JSONEncoder().encode(endpoint), forKey: storeKey)
-            startPolling()
-            await refreshAll()
-        } catch {
-            self.endpoint = endpoint
-            connectionError = error.localizedDescription
         }
+        self.endpoint = endpoint
+        connectionError = lastError.localizedDescription
     }
 
     func disconnect() {
@@ -112,6 +141,8 @@ final class AppModel {
             }
         } catch {
             connectionError = error.localizedDescription
+            // The network changed (left home Wi-Fi?): switch to another address of the same computer.
+            if let endpoint, endpoint.urls.count > 1 { await connect(to: endpoint) }
         }
     }
 
@@ -121,10 +152,7 @@ final class AppModel {
     }
 
     func refreshInstalled() async {
-        guard let api, selectedSerial != nil else {
-            installed = []
-            return
-        }
+        guard let api else { return }
         if let apps: [InstalledApp] = try? await api.get("/api/apps") { installed = apps }
     }
 
@@ -177,8 +205,7 @@ final class AppModel {
             try await api.send("/api/apks/\(apk.id)/install", body: ["launch": launch], timeout: 300)
         }
         guard ok else { return }
-        show(launch ? "\(apk.label) is running" : "\(apk.label) installed")
-        if launch { selectedTab = .phone }
+        if !launch { show("\(apk.label) installed") }
         await refreshInstalled()
     }
 
@@ -193,8 +220,7 @@ final class AppModel {
             try await api.send("/api/apps/\(pkg)/\(action.rawValue)")
         }
         guard ok else { return }
-        show("\(app.label): \(action.doneMessage)")
-        if action == .launch { selectedTab = .phone }
+        if action != .launch { show("\(app.label): \(action.doneMessage)") }
         if action == .uninstall { await refreshInstalled() }
     }
 
@@ -224,11 +250,50 @@ final class AppModel {
                 Task { @MainActor [weak self] in self?.uploadProgress = value }
             }
             await refreshLibrary()
-            show("Added \(apk.label)")
-            if autoRun, selectedSerial != nil { await install(apk, launch: true) }
+            await refreshInstalled()
+            if autoRun, let item = homeItems.first(where: { $0.apk?.id == apk.id || $0.packageName == apk.packageName }) {
+                openApp = item
+            } else {
+                show("Added \(apk.label)")
+            }
         } catch {
             show(error.localizedDescription, isError: true)
         }
+    }
+
+    // MARK: Home screen
+
+    var homeItems: [HomeItem] {
+        let byPackage = Dictionary(library.compactMap { a in a.packageName.map { ($0, a) } }, uniquingKeysWith: { a, _ in a })
+        let installedItems = installed.map { app in
+            HomeItem(id: app.packageName, label: app.label, packageName: app.packageName, installed: true, apk: byPackage[app.packageName])
+        }
+        let installedSet = Set(installed.map(\.packageName))
+        let notInstalled = library
+            .filter { $0.packageName.map { !installedSet.contains($0) } ?? true }
+            .map { HomeItem(id: $0.packageName ?? $0.id, label: $0.label, packageName: $0.packageName, installed: false, apk: $0) }
+        var seen = Set<String>()
+        return (installedItems + notInstalled)
+            .filter { seen.insert($0.id).inserted }
+            .sorted { $0.label.localizedCaseInsensitiveCompare($1.label) == .orderedAscending }
+    }
+
+    /// Makes sure the app is installed, then brings it to the front on the Android device.
+    func launch(_ item: HomeItem) async {
+        if !item.installed, let apk = item.apk {
+            await perform(busyId: item.id) { api in
+                try await api.send("/api/apks/\(apk.id)/install", body: ["launch": true], timeout: 600)
+            }
+            await refreshInstalled()
+        } else if let pkg = item.packageName {
+            let escaped = pkg.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? pkg
+            // Long timeout: the first launch may have to start Android on the computer.
+            await perform { api in try await api.send("/api/apps/\(escaped)/launch", timeout: 300) }
+        }
+    }
+
+    func installedApp(for item: HomeItem) -> InstalledApp? {
+        installed.first { $0.packageName == item.packageName }
     }
 
     // MARK: Helpers

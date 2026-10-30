@@ -133,8 +133,9 @@ if (( ! NO_EMULATOR )); then
     echo "no" | "$AVDMANAGER" create avd --force --name "$AVD_NAME" --package "$IMAGE" --device "$AVD_DEVICE"
     CONFIG="$HOME/.android/avd/${AVD_NAME}.avd/config.ini"
     if [[ -f "$CONFIG" ]]; then
-      # Hardware keyboard, host GPU (needed for a smooth stream) and a sensible amount of RAM
-      for kv in "hw.keyboard=yes" "hw.gpu.enabled=yes" "hw.gpu.mode=host" "hw.ramSize=4096"; do
+      # Hardware keyboard, host GPU (needed for a smooth stream); no cameras or mic, modest RAM: it runs in the background
+      for kv in "hw.keyboard=yes" "hw.gpu.enabled=yes" "hw.gpu.mode=host" "hw.ramSize=2048" \
+                "hw.camera.back=none" "hw.camera.front=none" "hw.audioInput=no" "showDeviceFrame=no"; do
         key="${kv%%=*}"
         grep -v "^${key//./\\.}=" "$CONFIG" > "$CONFIG.tmp" || true
         mv "$CONFIG.tmp" "$CONFIG"
@@ -164,13 +165,8 @@ step "Server dependencies"
 (cd "$ROOT/server" && npm install --silent)
 ok "npm install done"
 
+touch "$VENDOR/.setup-done"
+
 bold ""
-bold "  All set. Start Apricot with:"
-echo ""
-echo "    cd server && npm start"
-echo ""
-echo "  Then open the Apricot app on your iPhone (same Wi-Fi) - it finds this computer automatically."
-if [[ "$OS" == linux ]]; then
-  echo "  If a firewall is on, allow TCP 7420 and mDNS (UDP 5353), e.g.: sudo ufw allow 7420/tcp && sudo ufw allow mdns"
-fi
+bold "  All set."
 echo ""

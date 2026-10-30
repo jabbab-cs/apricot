@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Starts Apricot. The first run installs everything it needs (Android tools, a virtual phone, ~2 GB).
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ ! -f "$ROOT/server/vendor/.setup-done" || ! -d "$ROOT/server/node_modules" ]]; then
+  "$ROOT/scripts/setup.sh"
+fi
+exec node "$ROOT/server/src/index.js" "$@"
